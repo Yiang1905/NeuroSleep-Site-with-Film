@@ -1,4 +1,4 @@
-﻿/* ================= RESET ================= */
+/* ================= RESET ================= */
 *{
 margin:0;
 padding:0;
@@ -965,3 +965,13 @@ margin:0;
 .use-case-disclaimer{max-width:1100px;margin:28px auto 0;text-align:center;font-size:13px;line-height:1.8;color:rgba(255,255,255,.52)}
 @media(max-width:900px){.use-case-intro{grid-template-columns:1fr}.use-case-grid{grid-template-columns:1fr}.use-case-lead{min-height:0}.use-case-card{padding:26px 23px}}
 
+
+
+/* Shared 17-language selector, adapted from the Yiang Health language control */
+.ns-language-control{display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:14px;font-size:11px;color:rgba(255,255,255,.7)}
+.ns-language-control label{white-space:nowrap}
+.ns-language-control select{max-width:112px;background:rgba(9,19,32,.95);color:#f4f8ff;border:1px solid rgba(112,225,232,.45);border-radius:8px;padding:7px 8px;font:inherit;font-size:12px;outline:none}
+.ns-language-control select:focus{border-color:#70e1e8;box-shadow:0 0 0 2px rgba(112,225,232,.15)}
+@media(max-width:1250px){.navbar{padding-left:4%;padding-right:4%}.navbar nav{gap:14px}.navbar nav a{font-size:12px}.ns-language-control{margin-left:8px}}
+@media(max-width:1000px){.navbar{gap:10px}.navbar nav{display:none}.ns-language-control{margin-left:auto}.ns-language-control label{display:none}}
+@media(max-width:600px){.ns-language-control select{max-width:105px;padding:7px 5px}.logo{gap:8px}.logo-text span{font-size:10px}}

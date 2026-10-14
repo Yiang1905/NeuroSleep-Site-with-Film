@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -38,29 +38,36 @@
       <span>Adaptive Sleep System Concept</span>
     </div>
   </div>
-  <nav>
-    <a href="#film">Film</a>
-    <a href="#technology">Concept</a>
-    <a href="#health">Digital Experience</a>
-    <a href="#use-cases">Use Cases</a>
-    <a href="#assets">Project Assets</a>
-    <a href="#market">Market</a>
-    <a href="#contact">Contact</a>
+  <nav aria-label="Main navigation">
+    <a href="#film" data-ns-key="navFilm">Film</a>
+    <a href="#technology" data-ns-key="navConcept">Concept</a>
+    <a href="#health" data-ns-key="navDigital">Digital Experience</a>
+    <a href="#use-cases" data-ns-key="navUseCases">Use Cases</a>
+    <a href="#assets" data-ns-key="navAssets">Project Assets</a>
+    <a href="adaptive-engine-demo/index.html" target="_blank" rel="noopener noreferrer" data-ns-key="navDemo">Adaptive Engine</a>
+    <a href="#market" data-ns-key="navMarket">Market</a>
+    <a href="#contact" data-ns-key="navContact">Contact</a>
   </nav>
+  <div class="ns-language-control">
+    <label for="ns-lang-select" data-ns-key="languageLabel">Language</label>
+    <select id="ns-lang-select" aria-label="Interface language">
+      <option value="en">English</option><option value="zh-CN">????</option><option value="zh-TW">????</option><option value="ja">???</option><option value="ko">???</option><option value="es">Espa?ol</option><option value="fr">Fran?ais</option><option value="de">Deutsch</option><option value="it">Italiano</option><option value="pt">Portugu?s</option><option value="ru">???????</option><option value="ar">???????</option><option value="hi">??????</option><option value="id">Bahasa Indonesia</option><option value="vi">Ti?ng Vi?t</option><option value="th">???</option><option value="tr">T?rk?e</option>
+    </select>
+  </div>
 </header>
 
 <section class="hero">
   <div class="hero-content">
     <div class="hero-badge">Concept-Stage Project · Acquisition Discussion</div>
-    <h1>Adaptive Sleep<br><span>System Concept</span></h1>
+    <h1 id="ns-hero-title">Adaptive Sleep<br><span>System Concept</span></h1>
     <p>
       An early-stage concept exploring posture sensing, adjustable neck support and a connected digital sleep experience. The project includes brand and visual assets, a concept film, a website and commercial planning materials.
       <br><br>
       No working hardware prototype, filed patent or clinical data is currently available. The project owner is primarily exploring an overall project transfer to a strategic buyer.
     </p>
     <div class="hero-buttons">
-      <a href="#assets" class="btn">View Project Assets</a>
-      <a href="#contact" class="btn secondary">Let's Talk</a>
+      <a href="#assets" class="btn" data-ns-key="heroAssets">View Project Assets</a>
+      <a href="#contact" class="btn secondary" data-ns-key="heroContact">Let's Talk</a>
     </div>
   </div>
   <div class="hero-image">
@@ -416,7 +423,7 @@
     </div>
     <div class="one-pager-item">
       <h4>Contact</h4>
-      <p>xhsj2005@gmail.com<br>347235447@qq.com<br>Phone / WeChat: 18603567665</p>
+      <p>xhsj2005@gmail.com<br>xhsj2005@outlook.com<br>Phone / WeChat: 18603567665</p>
     </div>
   </div>
 </section>
@@ -516,6 +523,11 @@
       <p>A concise, fact-checked overview of the concept, current stage, proposed overall transfer and due-diligence process.</p>
       <a href="Documents/NeuroSleep-Buyer-Brief-Current.pdf">View English Buyer Brief (PDF)</a>
     </div>
+    <div class="resource-card">
+      <h3>Adaptive Engine Lab</h3>
+      <p>An interactive, rule-based concept simulation. It illustrates a proposed decision flow only; it is not a trained AI model, connected sensor system, validated algorithm or medical device.</p>
+      <a href="adaptive-engine-demo/index.html" target="_blank" rel="noopener noreferrer">Open Adaptive Engine Demo ?</a>
+    </div>
   </div>
 </section>
 
@@ -605,7 +617,7 @@
           <p>
             <strong>Email</strong><br>
             <a href="mailto:xhsj2005@gmail.com">xhsj2005@gmail.com</a><br>
-            <a href="mailto:347235447@qq.com">347235447@qq.com</a>
+            <a href="mailto:xhsj2005@outlook.com">xhsj2005@outlook.com</a>
           </p>
           <p>
             <strong>Phone / WeChat</strong><br>
