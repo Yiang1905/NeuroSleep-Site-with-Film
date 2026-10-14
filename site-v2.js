@@ -78,9 +78,12 @@
   };
 
   const saveLanguage = lang => {
-    document.cookie = lang === "en"
-      ? "googtrans=; Max-Age=0; path=/; SameSite=Lax"
-      : "googtrans=/en/" + lang + "; path=/; SameSite=Lax";
+    // Remove legacy Google Translate cookies at both the site root and Pages subpath.
+    document.cookie = "googtrans=; Max-Age=0; path=/; SameSite=Lax";
+    document.cookie = "googtrans=; Max-Age=0; path=/NeuroSleep-Site-with-Film/; SameSite=Lax";
+    if (lang !== "en") {
+      document.cookie = "googtrans=/en/" + lang + "; path=/; SameSite=Lax";
+    }
     document.documentElement.lang = lang;
     document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
   };
