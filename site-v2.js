@@ -88,43 +88,100 @@
     document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
   };
 
+  let googleUnavailable = false;
+  const fetchWithTimeout = async (url, options = {}, timeoutMs = 4500) => {
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+      window.clearTimeout(timer);
+    }
+  };
+  const applyTranslatedText = (node, original, translated) => {
+    const leading = (original.match(/^\s*/) || [""])[0];
+    const trailing = (original.match(/\s*$/) || [""])[0];
+    node.nodeValue = leading + translated.trim() + trailing;
+  };
+  const decodeHtml = value => {
+    const decoder = document.createElement("textarea");
+    decoder.innerHTML = value;
+    return decoder.value;
+  };
+
+  const translateWithMyMemory = async (nodes, originals, lang, runId) => {
+    // Public fallback for networks where Google's translation endpoint is blocked.
+    // Keep each request small and preserve text-node boundaries.
+    const groups = [];
+    let group = [], chars = 0;
+    for (let i = 0; i < nodes.length; i++) {
+      const value = originals[i].trim();
+      if (group.length && (group.length >= 4 || chars + value.length > 420)) {
+        groups.push(group);
+        group = [];
+        chars = 0;
+      }
+      group.push(i);
+      chars += value.length + 20;
+    }
+    if (group.length) groups.push(group);
+
+    for (const indices of groups) {
+      if (runId !== translationRunId) return;
+      const marker = i => "ZXQNSSEP" + String(i).padStart(3, "0") + "ZXQ";
+      const source = indices.map((nodeIndex, i) => originals[nodeIndex].trim() + (i < indices.length - 1 ? " " + marker(i) + " " : "")).join("");
+      const url = "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(source) + "&langpair=" + encodeURIComponent("en|" + lang);
+      const response = await fetchWithTimeout(url, { mode: "cors", credentials: "omit" }, 7000);
+      if (!response.ok) throw new Error("Fallback translation request failed: " + response.status);
+      const data = await response.json();
+      if (data.responseStatus !== 200 || !data.responseData || !data.responseData.translatedText) {
+        throw new Error("Both translation providers are unavailable for " + lang);
+      }
+      if (runId !== translationRunId) return;
+      const translated = decodeHtml(data.responseData.translatedText);
+      const pieces = translated.split(/ZXQNSSEP\d{3}ZXQ/);
+      if (pieces.length === indices.length) {
+        indices.forEach((nodeIndex, i) => applyTranslatedText(nodes[nodeIndex], originals[nodeIndex], pieces[i]));
+      } else {
+        // Rare marker changes: translate each short text node separately.
+        for (const nodeIndex of indices) {
+          const singleUrl = "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(originals[nodeIndex].trim()) + "&langpair=" + encodeURIComponent("en|" + lang);
+          const singleResponse = await fetchWithTimeout(singleUrl, { mode: "cors", credentials: "omit" }, 7000);
+          if (!singleResponse.ok) throw new Error("Fallback translation request failed: " + singleResponse.status);
+          const singleData = await singleResponse.json();
+          if (runId !== translationRunId) return;
+          if (singleData.responseStatus !== 200 || !singleData.responseData) throw new Error("Fallback translation unavailable");
+          applyTranslatedText(nodes[nodeIndex], originals[nodeIndex], decodeHtml(singleData.responseData.translatedText || ""));
+        }
+      }
+    }
+  };
+
   const translateBatch = async (nodes, lang, runId) => {
     const marker = i => "ZXQNSSEP" + String(i).padStart(3, "0") + "ZXQ";
     const originals = nodes.map(node => {
       if (!originalText.has(node)) originalText.set(node, node.nodeValue);
       return originalText.get(node);
     });
+    if (googleUnavailable) return translateWithMyMemory(nodes, originals, lang, runId);
     const source = originals.map((value, i) => value + (i < originals.length - 1 ? " " + marker(i) + " " : "")).join("");
     const url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=" + encodeURIComponent(lang) + "&dt=t&q=" + encodeURIComponent(source);
-    const response = await fetch(url, { mode: "cors", credentials: "omit" });
-    if (!response.ok) throw new Error("Translation request failed: " + response.status);
-    const data = await response.json();
-    if (runId !== translationRunId) return;
-    const translated = Array.isArray(data[0]) ? data[0].map(part => part[0] || "").join("") : "";
-    const pieces = translated.split(/ZXQNSSEP\d{3}ZXQ/);
-    if (pieces.length !== nodes.length) {
-      // Some phrases cause translation engines to alter separators; retry those
-      // text nodes individually rather than abandoning the rest of the page.
-      for (let i = 0; i < nodes.length; i++) {
-        const fallbackUrl = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=" + encodeURIComponent(lang) + "&dt=t&q=" + encodeURIComponent(originals[i].trim());
-        const fallbackResponse = await fetch(fallbackUrl, { mode: "cors", credentials: "omit" });
-        if (!fallbackResponse.ok) throw new Error("Translation request failed: " + fallbackResponse.status);
-        const fallbackData = await fallbackResponse.json();
-        if (runId !== translationRunId) return;
-        const fallbackText = Array.isArray(fallbackData[0]) ? fallbackData[0].map(part => part[0] || "").join("").trim() : "";
-        const original = originals[i];
-        const leading = (original.match(/^\s*/) || [""])[0];
-        const trailing = (original.match(/\s*$/) || [""])[0];
-        nodes[i].nodeValue = leading + fallbackText + trailing;
+    try {
+      const response = await fetchWithTimeout(url, { mode: "cors", credentials: "omit" }, 4500);
+      if (!response.ok) throw new Error("Google translation request failed: " + response.status);
+      const data = await response.json();
+      if (runId !== translationRunId) return;
+      const translated = Array.isArray(data[0]) ? data[0].map(part => part[0] || "").join("") : "";
+      const pieces = translated.split(/ZXQNSSEP\d{3}ZXQ/);
+      if (pieces.length !== nodes.length) {
+        return translateWithMyMemory(nodes, originals, lang, runId);
       }
-      return;
+      nodes.forEach((node, i) => applyTranslatedText(node, originals[i], pieces[i]));
+    } catch (error) {
+      if (runId !== translationRunId) return;
+      googleUnavailable = true;
+      return translateWithMyMemory(nodes, originals, lang, runId);
     }
-    nodes.forEach((node, i) => {
-      const original = originals[i];
-      const leading = (original.match(/^\s*/) || [""])[0];
-      const trailing = (original.match(/\s*$/) || [""])[0];
-      node.nodeValue = leading + pieces[i].trim() + trailing;
-    });
   };
 
   const runTranslation = async lang => {
@@ -156,8 +213,8 @@
     }
     if (batch.length) batches.push(batch);
     try {
-      for (let i = 0; i < batches.length; i += 4) {
-        await Promise.all(batches.slice(i, i + 4).map(group => translateBatch(group, lang, runId)));
+      for (let i = 0; i < batches.length; i += 2) {
+        await Promise.all(batches.slice(i, i + 2).map(group => translateBatch(group, lang, runId)));
         if (runId !== translationRunId) return;
       }
       status.textContent = "";
