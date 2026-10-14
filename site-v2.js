@@ -19,7 +19,7 @@
   document.addEventListener("keydown", event => { if (event.key === "Escape") closeMenu(); });
 })();
 
-// Translate the complete page, not only navigation labels.
+// Translate only after a visitor chooses a language. English stays lightweight.
 (() => {
   const selector = document.getElementById("ns-lang-select");
   if (!selector) return;
@@ -28,42 +28,117 @@
     const match = document.cookie.match(/(?:^|;\s*)googtrans=\/en\/([^;]+)/);
     return match ? decodeURIComponent(match[1]) : "en";
   };
-  const current = readLanguage();
-  selector.value = supported.has(current) ? current : "en";
+  const stored = readLanguage();
+  let activeLanguage = supported.has(stored) ? stored : "en";
+  const originalText = new Map();
+  let translationRunId = 0;
+  selector.value = activeLanguage;
+
+  const status = document.createElement("span");
+  status.className = "language-status";
+  status.setAttribute("role", "status");
+  status.setAttribute("aria-live", "polite");
+  status.style.cssText = "font-size:10px;color:#9aabb8;min-width:1px;";
+  selector.parentElement.appendChild(status);
+
+  const collectTextNodes = () => {
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        const parent = node.parentElement;
+        if (!parent || parent.closest("script,style,noscript,code,pre,textarea,select,option,svg,[data-no-translate]")) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    return nodes;
+  };
+
+  const saveLanguage = lang => {
+    document.cookie = lang === "en"
+      ? "googtrans=; Max-Age=0; path=/; SameSite=Lax"
+      : "googtrans=/en/" + lang + "; path=/; SameSite=Lax";
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+  };
+
+  const translateBatch = async (nodes, lang, runId) => {
+    const marker = i => "ZXQNSSEP" + String(i).padStart(3, "0") + "ZXQ";
+    const originals = nodes.map(node => {
+      if (!originalText.has(node)) originalText.set(node, node.nodeValue);
+      return originalText.get(node);
+    });
+    const source = originals.map((value, i) => value + (i < originals.length - 1 ? " " + marker(i) + " " : "")).join("");
+    const url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=" + encodeURIComponent(lang) + "&dt=t&q=" + encodeURIComponent(source);
+    const response = await fetch(url, { mode: "cors", credentials: "omit" });
+    if (!response.ok) throw new Error("Translation request failed: " + response.status);
+    const data = await response.json();
+    if (runId !== translationRunId) return;
+    const translated = Array.isArray(data[0]) ? data[0].map(part => part[0] || "").join("") : "";
+    const pieces = translated.split(/ZXQNSSEP\d{3}ZXQ/);
+    if (pieces.length !== nodes.length) throw new Error("Translation segment markers were not preserved");
+    nodes.forEach((node, i) => {
+      const original = originals[i];
+      const leading = (original.match(/^\s*/) || [""])[0];
+      const trailing = (original.match(/\s*$/) || [""])[0];
+      node.nodeValue = leading + pieces[i].trim() + trailing;
+    });
+  };
+
+  const runTranslation = async lang => {
+    const runId = ++translationRunId;
+    activeLanguage = lang;
+    saveLanguage(lang);
+    const nodes = collectTextNodes();
+    if (lang === "en") {
+      nodes.forEach(node => {
+        if (originalText.has(node)) node.nodeValue = originalText.get(node);
+      });
+      status.textContent = "";
+      selector.removeAttribute("aria-busy");
+      return;
+    }
+    status.textContent = "Translating…";
+    selector.setAttribute("aria-busy", "true");
+    const batches = [];
+    let batch = [], chars = 0;
+    for (const node of nodes) {
+      const value = originalText.has(node) ? originalText.get(node) : node.nodeValue;
+      if (batch.length && (batch.length >= 8 || chars + value.length > 1500)) {
+        batches.push(batch);
+        batch = [];
+        chars = 0;
+      }
+      batch.push(node);
+      chars += value.length + 24;
+    }
+    if (batch.length) batches.push(batch);
+    try {
+      for (let i = 0; i < batches.length; i += 4) {
+        await Promise.all(batches.slice(i, i + 4).map(group => translateBatch(group, lang, runId)));
+        if (runId !== translationRunId) return;
+      }
+      status.textContent = "";
+    } catch (error) {
+      console.warn("NeuroSleep translation failed; source text remains available.", error);
+      status.textContent = "Translation unavailable";
+    } finally {
+      if (runId === translationRunId) selector.removeAttribute("aria-busy");
+    }
+  };
+
   selector.addEventListener("change", () => {
     const lang = supported.has(selector.value) ? selector.value : "en";
-    document.cookie = lang === "en" ? "googtrans=; Max-Age=0; path=/" : `googtrans=/en/${lang}; path=/; SameSite=Lax`;
-
-    window.location.reload();
+    saveLanguage(lang);
+    runTranslation(lang);
   });
-  // Keep the default English site lightweight. Load Google Translate only
-  // when a non-English language is selected, and only after the page has loaded.
-  if (current !== "en") {
-    const loadTranslator = () => {
-      if (!document.getElementById("google_translate_element")) {
-        const holder = document.createElement("div");
-        holder.id = "google_translate_element";
-        holder.style.cssText = "position:fixed;left:-10000px;top:0;width:1px;height:1px;overflow:hidden;";
-        document.body.appendChild(holder);
-      }
-      window.googleTranslateElementInit = function () {
-        if (window.google && window.google.translate) {
-          new window.google.translate.TranslateElement({pageLanguage:"en", includedLanguages:Array.from(supported).filter(x=>x!=="en").join(","), autoDisplay:false}, "google_translate_element");
-        }
-      };
-      if (!document.querySelector('script[data-ns-google-translate]')) {
-        const script = document.createElement("script");
-        script.dataset.nsGoogleTranslate = "true";
-        script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
-        script.async = true;
-        script.onerror = () => console.warn("Google Translate could not be loaded; the original page remains available.");
-        document.head.appendChild(script);
-      }
-    };
-    if (document.readyState === "complete") {
-      window.setTimeout(loadTranslator, 300);
+
+  if (activeLanguage !== "en") {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => runTranslation(activeLanguage), { once: true });
     } else {
-      window.addEventListener("load", () => window.setTimeout(loadTranslator, 300), { once: true });
+      runTranslation(activeLanguage);
     }
   }
 })();
