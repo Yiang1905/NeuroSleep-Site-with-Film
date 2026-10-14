@@ -503,4 +503,4 @@ function nsInitLanguage(){
   sel.addEventListener("change",()=>apply(sel.value));
   apply(detected);
 }
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",nsInitLanguage);else nsInitLanguage();
+// Full-page translation is handled by the shared site-v2.js Google Translate integration.
