@@ -36,22 +36,34 @@
 
     window.location.reload();
   });
-  if (!document.getElementById("google_translate_element")) {
-    const holder = document.createElement("div");
-    holder.id = "google_translate_element";
-    holder.style.cssText = "position:fixed;left:-10000px;top:0;width:1px;height:1px;overflow:hidden;";
-    document.body.appendChild(holder);
-  }
-  window.googleTranslateElementInit = function () {
-    if (window.google && window.google.translate) {
-      new window.google.translate.TranslateElement({pageLanguage:"en", includedLanguages:Array.from(supported).filter(x=>x!=="en").join(","), autoDisplay:false}, "google_translate_element");
+  // Keep the default English site lightweight. Load Google Translate only
+  // when a non-English language is selected, and only after the page has loaded.
+  if (current !== "en") {
+    const loadTranslator = () => {
+      if (!document.getElementById("google_translate_element")) {
+        const holder = document.createElement("div");
+        holder.id = "google_translate_element";
+        holder.style.cssText = "position:fixed;left:-10000px;top:0;width:1px;height:1px;overflow:hidden;";
+        document.body.appendChild(holder);
+      }
+      window.googleTranslateElementInit = function () {
+        if (window.google && window.google.translate) {
+          new window.google.translate.TranslateElement({pageLanguage:"en", includedLanguages:Array.from(supported).filter(x=>x!=="en").join(","), autoDisplay:false}, "google_translate_element");
+        }
+      };
+      if (!document.querySelector('script[data-ns-google-translate]')) {
+        const script = document.createElement("script");
+        script.dataset.nsGoogleTranslate = "true";
+        script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+        script.async = true;
+        script.onerror = () => console.warn("Google Translate could not be loaded; the original page remains available.");
+        document.head.appendChild(script);
+      }
+    };
+    if (document.readyState === "complete") {
+      window.setTimeout(loadTranslator, 300);
+    } else {
+      window.addEventListener("load", () => window.setTimeout(loadTranslator, 300), { once: true });
     }
-  };
-  if (!document.querySelector('script[data-ns-google-translate]')) {
-    const script = document.createElement("script");
-    script.dataset.nsGoogleTranslate = "true";
-    script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
-    script.async = true;
-    document.head.appendChild(script);
   }
 })();
