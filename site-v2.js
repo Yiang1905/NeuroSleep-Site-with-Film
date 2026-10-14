@@ -19,6 +19,28 @@
   document.addEventListener("keydown", event => { if (event.key === "Escape") closeMenu(); });
 })();
 
+// Defer the film poster until the visitor scrolls near the film section.
+(() => {
+  const videos = document.querySelectorAll("video[data-poster]");
+  if (!videos.length) return;
+  const loadPoster = video => {
+    if (!video.poster && video.dataset.poster) video.poster = video.dataset.poster;
+  };
+  if ("IntersectionObserver" in window) {
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          loadPoster(entry.target);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { rootMargin: "300px 0px" });
+    videos.forEach(video => observer.observe(video));
+  } else {
+    window.addEventListener("load", () => videos.forEach(loadPoster), { once: true });
+  }
+})();
+
 // Translate only after a visitor chooses a language. English stays lightweight.
 (() => {
   const selector = document.getElementById("ns-lang-select");
@@ -77,7 +99,23 @@
     if (runId !== translationRunId) return;
     const translated = Array.isArray(data[0]) ? data[0].map(part => part[0] || "").join("") : "";
     const pieces = translated.split(/ZXQNSSEP\d{3}ZXQ/);
-    if (pieces.length !== nodes.length) throw new Error("Translation segment markers were not preserved");
+    if (pieces.length !== nodes.length) {
+      // Some phrases cause translation engines to alter separators; retry those
+      // text nodes individually rather than abandoning the rest of the page.
+      for (let i = 0; i < nodes.length; i++) {
+        const fallbackUrl = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=" + encodeURIComponent(lang) + "&dt=t&q=" + encodeURIComponent(originals[i].trim());
+        const fallbackResponse = await fetch(fallbackUrl, { mode: "cors", credentials: "omit" });
+        if (!fallbackResponse.ok) throw new Error("Translation request failed: " + fallbackResponse.status);
+        const fallbackData = await fallbackResponse.json();
+        if (runId !== translationRunId) return;
+        const fallbackText = Array.isArray(fallbackData[0]) ? fallbackData[0].map(part => part[0] || "").join("").trim() : "";
+        const original = originals[i];
+        const leading = (original.match(/^\s*/) || [""])[0];
+        const trailing = (original.match(/\s*$/) || [""])[0];
+        nodes[i].nodeValue = leading + fallbackText + trailing;
+      }
+      return;
+    }
     nodes.forEach((node, i) => {
       const original = originals[i];
       const leading = (original.match(/^\s*/) || [""])[0];
