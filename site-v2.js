@@ -187,6 +187,8 @@
   const runTranslation = async lang => {
     const runId = ++translationRunId;
     activeLanguage = lang;
+    document.documentElement.lang = lang;
+    document.documentElement.dataset.language = lang;
     saveLanguage(lang);
     const nodes = collectTextNodes();
     if (lang === "en") {

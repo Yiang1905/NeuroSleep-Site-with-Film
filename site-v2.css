@@ -66,3 +66,44 @@
 @media(max-width:800px){.hero h1{font-size:clamp(36px,7vw,48px);line-height:1.08}.hero-copy{font-size:17px;line-height:1.7}}
 @media(max-width:460px){.hero h1{font-size:clamp(32px,8.5vw,39px);line-height:1.1}.hero-copy{font-size:17px;line-height:1.7}}
 
+
+/* 2026-10-17 visual refinement: premium application-led homepage */
+:root{--bg:#060d18;--panel:#0b1928;--accent:#83e5e0;--warm:#cdb68f;--line:rgba(177,218,231,.15);--max:1240px}
+body{font-family:Inter,"Helvetica Neue",Arial,"Noto Sans SC","Microsoft YaHei",sans-serif;letter-spacing:0}
+.hero{min-height:590px;gap:clamp(28px,4vw,64px);padding-top:58px;padding-bottom:62px}
+.hero h1{font-size:clamp(42px,5.2vw,70px);line-height:1.06;letter-spacing:-.045em;max-width:660px}
+.hero-art{padding:12px;border:1px solid rgba(131,229,224,.18);background:radial-gradient(ellipse at 50% 45%,rgba(41,119,145,.16),rgba(6,13,24,0) 68%);box-shadow:0 28px 80px rgba(0,0,0,.22)}
+.hero-art img{border-radius:2px;filter:saturate(.92) contrast(1.03)}
+.use-cases-section{position:relative;overflow:hidden;background:radial-gradient(ellipse at 12% 8%,rgba(40,118,150,.10),transparent 45%),linear-gradient(180deg,rgba(11,25,40,.44),rgba(6,13,24,0))}
+.use-cases-section .section-head{max-width:820px}
+.use-case-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;border:0}
+.use-case-card{min-width:0;display:flex;flex-direction:column;padding:0 0 22px;overflow:hidden;text-decoration:none;border:1px solid rgba(180,222,235,.13);border-radius:8px;background:linear-gradient(145deg,rgba(17,37,55,.94),rgba(8,18,30,.98));transition:transform .24s ease,border-color .24s ease,box-shadow .24s ease}
+.use-case-card:hover{transform:translateY(-4px);border-color:rgba(131,229,224,.48);box-shadow:0 18px 45px rgba(0,0,0,.24),0 0 26px rgba(72,194,199,.07)}
+.use-case-visual{height:205px;position:relative;overflow:hidden;background:radial-gradient(ellipse at center,rgba(59,135,157,.18),rgba(4,12,22,.96))}
+.use-case-visual:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,12,22,0) 52%,rgba(7,17,29,.55))}
+.use-case-visual img{width:100%;height:100%;object-fit:cover;object-position:center;opacity:.92;transition:transform .45s ease}
+.use-case-card:hover .use-case-visual img{transform:scale(1.035)}
+.use-case-number{margin:21px 22px 0;color:var(--accent);font-size:10px;letter-spacing:.15em;font-weight:750}
+.use-case-card h3{margin:11px 22px 8px;font-size:21px;line-height:1.3;font-weight:560;letter-spacing:-.02em}
+.use-case-card p{margin:0 22px 20px;color:#aebdc8;font-size:13px;line-height:1.75}
+.use-case-link{margin:auto 22px 0;padding-top:14px;border-top:1px solid rgba(180,222,235,.12);display:flex;justify-content:space-between;color:#d7e6e9;font-size:12px}
+.use-case-link b{color:var(--accent);font-size:18px;font-weight:400}
+.application-note{display:grid;grid-template-columns:.8fr 1.5fr auto;align-items:center;gap:22px;margin-top:22px;padding:22px 24px;border:1px solid rgba(205,182,143,.25);background:rgba(205,182,143,.045);border-radius:6px}
+.application-note strong{font-size:14px;color:#e3d4bb}
+.application-note span{font-size:12px;line-height:1.7;color:#aab8c2}
+.application-note a{font-size:12px;color:var(--accent);text-decoration:none;white-space:nowrap}
+.section h2,.page-hero h1{letter-spacing:-.025em}
+.eyebrow{letter-spacing:.15em}
+.button{border-radius:4px;transition:transform .2s,box-shadow .2s}
+.button:hover{transform:translateY(-2px);box-shadow:0 8px 26px rgba(131,229,224,.15)}
+/* CJK typography: more natural rhythm and restrained headline scale */
+html[lang^="zh"] body,html[lang^="ja"] body,html[lang^="ko"] body{font-family:"Inter","PingFang SC","Microsoft YaHei","Noto Sans CJK SC","Source Han Sans SC",sans-serif;letter-spacing:0}
+html[lang^="zh"] .hero h1,html[lang^="zh"] .section h2,html[lang^="zh"] .page-hero h1{font-size:clamp(32px,4.1vw,52px);line-height:1.28;letter-spacing:.005em;font-weight:650;overflow-wrap:anywhere}
+html[lang^="zh"] .hero-copy,html[lang^="zh"] .section-intro{font-size:15px;line-height:1.95}
+html[lang^="zh"] .eyebrow{font-size:10px;letter-spacing:.08em}
+html[lang^="zh"] .use-case-card h3{font-size:19px;line-height:1.45}
+html[lang^="zh"] .use-case-card p{font-size:13px;line-height:1.9}
+html[lang^="zh"] .status-line{line-height:1.9;letter-spacing:0}
+html[lang^="zh"] .site-nav a{font-size:12px;letter-spacing:0}
+@media(max-width:900px){.hero{min-height:0;grid-template-columns:1fr;padding-top:44px;padding-bottom:48px}.hero-art{max-width:720px;width:100%;margin:auto}.use-case-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.application-note{grid-template-columns:1fr;gap:10px}.application-note a{white-space:normal}}
+@media(max-width:560px){.container{padding-left:20px;padding-right:20px}.hero h1{font-size:clamp(38px,10vw,52px)}.use-case-grid{grid-template-columns:1fr;gap:14px}.use-case-visual{height:220px}.use-case-card{padding-bottom:20px}.section{padding-top:60px;padding-bottom:60px}.asset-band{grid-template-columns:repeat(2,minmax(0,1fr))}.asset-band div:nth-child(2){border-right:0}.asset-band div:nth-child(-n+2){border-bottom:1px solid var(--line)}html[lang^="zh"] .hero h1,html[lang^="zh"] .section h2,html[lang^="zh"] .page-hero h1{font-size:clamp(30px,8vw,40px);line-height:1.35}}
