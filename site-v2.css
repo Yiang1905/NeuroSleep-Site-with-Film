@@ -132,3 +132,139 @@ html[lang^="zh"] .site-nav a{font-size:12px;letter-spacing:0}
 @media(max-width:800px){.dream-companion{right:-7px;top:4%;width:78px;height:88px}.companion-mascot{width:62px;height:62px}.hero-human-note{font-size:11px}}
 @media(max-width:460px){.dream-companion{right:-2px;top:1%;transform:scale(.8);transform-origin:top right}.hero-human-note{max-width:90%;line-height:1.6}}
 @media(prefers-reduced-motion:reduce){.dream-companion,.companion-mascot,.orbit-one,.orbit-two,.spark-a,.spark-b{animation:none!important}.use-case-card,.use-case-visual img{transition:none!important}}
+
+
+/* 2026-10-17 NeuroSleep warm visual system: keep the midnight-tech identity, add light and human warmth. */
+:root{
+  --bg:#0b1424;
+  --panel:#111f33;
+  --ink:#f6f4f0;
+  --muted:#aeb8c6;
+  --line:rgba(183,190,230,.20);
+  --accent:#c0b2ff;
+  --warm:#f1b99b;
+}
+html{background:var(--bg)}
+body{
+  background:
+    radial-gradient(ellipse at 8% 4%,rgba(139,122,230,.12),transparent 32rem),
+    radial-gradient(ellipse at 92% 25%,rgba(241,185,155,.055),transparent 28rem),
+    var(--bg);
+}
+.site-header{
+  background:rgba(11,20,36,.88);
+  border-bottom-color:rgba(192,178,255,.20);
+}
+.site-nav a:hover,.site-nav a[aria-current=page]{color:#d4caff}
+.eyebrow,.pathway small,.rule-item .num,.application .app-no{color:#c0b2ff}
+.button{
+  background:linear-gradient(135deg,#c7bbff,#a9dfe5);
+  border-color:transparent;color:#172035;
+}
+.button.secondary{background:rgba(255,255,255,.035);color:#f6f4f0;border-color:rgba(226,220,255,.38)}
+.hero-art{
+  border-color:rgba(192,178,255,.24);
+  background:
+    radial-gradient(ellipse at 68% 22%,rgba(241,185,155,.15),transparent 43%),
+    radial-gradient(ellipse at 50% 55%,rgba(139,122,230,.19),rgba(11,20,36,0) 70%);
+  box-shadow:0 28px 90px rgba(0,0,0,.24),0 0 54px rgba(153,137,232,.06);
+}
+.hero-art img{filter:saturate(1.02) contrast(1.02)}
+.section{border-top-color:rgba(192,178,255,.17)}
+.use-cases-section{
+  background:
+    radial-gradient(ellipse at 12% 8%,rgba(192,178,255,.13),transparent 45%),
+    linear-gradient(180deg,rgba(20,31,54,.82),rgba(11,20,36,.1));
+}
+.use-case-card{
+  border-color:rgba(192,178,255,.19);
+  background:linear-gradient(145deg,rgba(29,39,65,.96),rgba(13,24,41,.99));
+}
+.use-case-card:hover{border-color:rgba(192,178,255,.55);box-shadow:0 18px 45px rgba(0,0,0,.2),0 0 28px rgba(192,178,255,.10)}
+.use-case-number,.use-case-link b,.application-note a,.contact-links a{color:#c9bdff}
+.application-note{
+  border-color:rgba(241,185,155,.36);
+  background:linear-gradient(110deg,rgba(241,185,155,.09),rgba(192,178,255,.07));
+}
+.application-note strong{color:#f4d2bf}
+
+/* Alternate dark technical chapters with warm ivory reading surfaces. */
+main>section.section:nth-of-type(even){
+  color:#263247;
+  background:linear-gradient(135deg,#f7f2ea 0%,#f0edf8 100%);
+  border-top-color:rgba(68,72,104,.12);
+}
+main>section.section:nth-of-type(even) .eyebrow,
+main>section.section:nth-of-type(even) .rule-item .num,
+main>section.section:nth-of-type(even) .pathway small,
+main>section.section:nth-of-type(even) .application .app-no,
+main>section.section:nth-of-type(even) .asset-index th,
+main>section.section:nth-of-type(even) .process-step small{
+  color:#7565bd;
+}
+main>section.section:nth-of-type(even) h2,
+main>section.section:nth-of-type(even) h3,
+main>section.section:nth-of-type(even) .large-statement,
+main>section.section:nth-of-type(even) strong{
+  color:#202b40;
+}
+main>section.section:nth-of-type(even) p,
+main>section.section:nth-of-type(even) .section-intro,
+main>section.section:nth-of-type(even) .text-column p,
+main>section.section:nth-of-type(even) .rule-item p,
+main>section.section:nth-of-type(even) .pathway p,
+main>section.section:nth-of-type(even) .asset-band span,
+main>section.section:nth-of-type(even) .asset-index td,
+main>section.section:nth-of-type(even) .process-step p{
+  color:#596477;
+}
+main>section.section:nth-of-type(even) .rule-list,
+main>section.section:nth-of-type(even) .rule-item,
+main>section.section:nth-of-type(even) .pathways,
+main>section.section:nth-of-type(even) .pathway,
+main>section.section:nth-of-type(even) .asset-band,
+main>section.section:nth-of-type(even) .asset-band div,
+main>section.section:nth-of-type(even) .asset-index th,
+main>section.section:nth-of-type(even) .asset-index td,
+main>section.section:nth-of-type(even) .link-row,
+main>section.section:nth-of-type(even) .process-step{
+  border-color:rgba(58,68,94,.17);
+}
+main>section.section:nth-of-type(even) .link-row .arrow{color:#7565bd}
+main>section.section:nth-of-type(even) .link-row small{color:#657084}
+main>section.section:nth-of-type(even) .disclosure,
+main>section.section:nth-of-type(even) .hypothesis{
+  color:#596477;
+  background:rgba(255,255,255,.54);
+  border-color:rgba(117,101,189,.24);
+}
+main>section.section:nth-of-type(even) .contact-panel{
+  background:linear-gradient(135deg,#e5e0f3,#eee8df);
+  border-color:rgba(117,101,189,.22);
+}
+main>section.section:nth-of-type(even) .contact-panel p{color:#596477}
+main>section.section:nth-of-type(even) .contact-links a{color:#6252a7}
+main>section.section:nth-of-type(even) .button{color:#172035}
+main>section.section:nth-of-type(even) .film-frame{background:#111827;border-color:rgba(58,68,94,.17)}
+/* Application cards remain dark on light chapters for depth and consistent contrast. */
+main>section.section:nth-of-type(even) .use-case-card{color:#f6f4f0;background:linear-gradient(145deg,#202b46,#111e31);border-color:rgba(117,101,189,.25)}
+main>section.section:nth-of-type(even) .use-case-card h3{color:#f6f4f0}
+main>section.section:nth-of-type(even) .use-case-card p{color:#c1c9d6}
+main>section.section:nth-of-type(even) .use-case-link{color:#e3e8f0;border-top-color:rgba(255,255,255,.14)}
+main>section.section:nth-of-type(even) .use-case-number{color:#c9bdff}
+.page-hero{
+  background:radial-gradient(ellipse at 88% 18%,rgba(192,178,255,.10),transparent 36rem);
+}
+.page-hero h1{color:#f6f4f0}
+.page-hero p{color:#c0c8d5}
+.site-footer{
+  background:#080f1c;
+  border-top-color:rgba(192,178,255,.20);
+}
+.disclaimer{color:#929db0}
+@media(prefers-reduced-motion:reduce){
+  .use-case-card,.use-case-visual img,.button{transition:none}
+}
+@media(max-width:800px){
+  main>section.section:nth-of-type(even){background:linear-gradient(160deg,#f7f2ea,#f0edf8)}
+}
