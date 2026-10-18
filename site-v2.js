@@ -221,8 +221,18 @@
       }
       status.textContent = "";
     } catch (error) {
-      console.warn("NeuroSleep translation failed; source text remains available.", error);
-      status.textContent = "Translation unavailable";
+      console.warn("NeuroSleep translation failed; restoring the original English text.", error);
+      if (runId === translationRunId) {
+        // Avoid leaving a half-translated page when a provider times out or rate-limits.
+        nodes.forEach(node => {
+          if (originalText.has(node)) node.nodeValue = originalText.get(node);
+        });
+        activeLanguage = "en";
+        selector.value = "en";
+        saveLanguage("en");
+        document.documentElement.dataset.language = "en";
+        status.textContent = "Translation unavailable — showing English";
+      }
     } finally {
       if (runId === translationRunId) selector.removeAttribute("aria-busy");
     }

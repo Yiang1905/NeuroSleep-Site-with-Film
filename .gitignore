@@ -1,2 +1,16 @@
 # Private working files — never publish
 _INTERNAL_DO_NOT_PUBLISH/
+
+# Local experiments and recovery copies — never publish accidentally
+site-v2.css.bak-*
+video/social/
+
+# Internal due-diligence working documents — keep outside public site
+Documents/NeuroSleep-Asset-Inventory-2026-10-18.csv
+Documents/NeuroSleep-Asset-Rights-Transfer-Register-2026-10-18.md
+Documents/NeuroSleep-Buyer-Brief-EN-Draft-2026-10-18.md
+Documents/NeuroSleep-Buyer-Research-Update-2026-10-18.md
+Documents/NeuroSleep-Ergomotion-Strategic-Fit-2026-10-18.md
+Documents/NeuroSleep-Overseas-Buyer-Shortlist-2026-10-18.md
+Documents/NeuroSleep-Technical-QA-2026-10-18.md
+Documents/NeuroSleep-Transfer-Package-Manifest-2026-10-18.md
