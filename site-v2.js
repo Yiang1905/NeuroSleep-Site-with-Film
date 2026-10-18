@@ -53,6 +53,22 @@
   const stored = readLanguage();
   let activeLanguage = supported.has(stored) ? stored : "en";
   const originalText = new Map();
+  const translationCaches = new Map();
+  const getTranslationCache = lang => {
+    if (!translationCaches.has(lang)) {
+      let cached = {};
+      try { cached = JSON.parse(localStorage.getItem("neurosleep-translation-cache-v1-" + lang) || "{}"); } catch (_) {}
+      translationCaches.set(lang, cached && typeof cached === "object" ? cached : {});
+    }
+    return translationCaches.get(lang);
+  };
+  const cacheTranslation = (lang, original, translated) => {
+    if (!original || !translated) return;
+    getTranslationCache(lang)[original.trim()] = translated.trim();
+  };
+  const persistTranslationCache = lang => {
+    try { localStorage.setItem("neurosleep-translation-cache-v1-" + lang, JSON.stringify(getTranslationCache(lang))); } catch (_) {}
+  };
   let translationRunId = 0;
   selector.value = activeLanguage;
 
@@ -141,7 +157,10 @@
       const translated = decodeHtml(data.responseData.translatedText);
       const pieces = translated.split(/ZXQNSSEP\d{3}ZXQ/);
       if (pieces.length === indices.length) {
-        indices.forEach((nodeIndex, i) => applyTranslatedText(nodes[nodeIndex], originals[nodeIndex], pieces[i]));
+        indices.forEach((nodeIndex, i) => {
+          applyTranslatedText(nodes[nodeIndex], originals[nodeIndex], pieces[i]);
+          cacheTranslation(lang, originals[nodeIndex], pieces[i]);
+        });
       } else {
         // Rare marker changes: translate each short text node separately.
         for (const nodeIndex of indices) {
@@ -151,7 +170,9 @@
           const singleData = await singleResponse.json();
           if (runId !== translationRunId) return;
           if (singleData.responseStatus !== 200 || !singleData.responseData) throw new Error("Fallback translation unavailable");
-          applyTranslatedText(nodes[nodeIndex], originals[nodeIndex], decodeHtml(singleData.responseData.translatedText || ""));
+          const singleTranslated = decodeHtml(singleData.responseData.translatedText || "");
+          applyTranslatedText(nodes[nodeIndex], originals[nodeIndex], singleTranslated);
+          cacheTranslation(lang, originals[nodeIndex], singleTranslated);
         }
       }
     }
@@ -159,28 +180,39 @@
 
   const translateBatch = async (nodes, lang, runId) => {
     const marker = i => "ZXQNSSEP" + String(i).padStart(3, "0") + "ZXQ";
-    const originals = nodes.map(node => {
+    const allOriginals = nodes.map(node => {
       if (!originalText.has(node)) originalText.set(node, node.nodeValue);
       return originalText.get(node);
     });
-    if (googleUnavailable) return translateWithMyMemory(nodes, originals, lang, runId);
-    const source = originals.map((value, i) => value + (i < originals.length - 1 ? " " + marker(i) + " " : "")).join("");
+    const cache = getTranslationCache(lang);
+    const pendingNodes = [], pendingOriginals = [];
+    nodes.forEach((node, i) => {
+      const cached = cache[allOriginals[i].trim()];
+      if (cached) applyTranslatedText(node, allOriginals[i], cached);
+      else { pendingNodes.push(node); pendingOriginals.push(allOriginals[i]); }
+    });
+    if (!pendingNodes.length || runId !== translationRunId) return;
+    if (googleUnavailable) return translateWithMyMemory(pendingNodes, pendingOriginals, lang, runId);
+    const source = pendingOriginals.map((value, i) => value + (i < pendingOriginals.length - 1 ? " " + marker(i) + " " : "")).join("");
     const url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=" + encodeURIComponent(lang) + "&dt=t&q=" + encodeURIComponent(source);
     try {
-      const response = await fetchWithTimeout(url, { mode: "cors", credentials: "omit" }, 4500);
+      const response = await fetchWithTimeout(url, { mode: "cors", credentials: "omit" }, 2800);
       if (!response.ok) throw new Error("Google translation request failed: " + response.status);
       const data = await response.json();
       if (runId !== translationRunId) return;
       const translated = Array.isArray(data[0]) ? data[0].map(part => part[0] || "").join("") : "";
       const pieces = translated.split(/ZXQNSSEP\d{3}ZXQ/);
-      if (pieces.length !== nodes.length) {
-        return translateWithMyMemory(nodes, originals, lang, runId);
+      if (pieces.length !== pendingNodes.length) {
+        return translateWithMyMemory(pendingNodes, pendingOriginals, lang, runId);
       }
-      nodes.forEach((node, i) => applyTranslatedText(node, originals[i], pieces[i]));
+      pendingNodes.forEach((node, i) => {
+        applyTranslatedText(node, pendingOriginals[i], pieces[i]);
+        cacheTranslation(lang, pendingOriginals[i], pieces[i]);
+      });
     } catch (error) {
       if (runId !== translationRunId) return;
       googleUnavailable = true;
-      return translateWithMyMemory(nodes, originals, lang, runId);
+      return translateWithMyMemory(pendingNodes, pendingOriginals, lang, runId);
     }
   };
 
@@ -205,7 +237,7 @@
     let batch = [], chars = 0;
     for (const node of nodes) {
       const value = originalText.has(node) ? originalText.get(node) : node.nodeValue;
-      if (batch.length && (batch.length >= 8 || chars + value.length > 1500)) {
+      if (batch.length && (batch.length >= 24 || chars + value.length > 3000)) {
         batches.push(batch);
         batch = [];
         chars = 0;
@@ -215,10 +247,11 @@
     }
     if (batch.length) batches.push(batch);
     try {
-      for (let i = 0; i < batches.length; i += 2) {
-        await Promise.all(batches.slice(i, i + 2).map(group => translateBatch(group, lang, runId)));
+      for (let i = 0; i < batches.length; i += 3) {
+        await Promise.all(batches.slice(i, i + 3).map(group => translateBatch(group, lang, runId)));
         if (runId !== translationRunId) return;
       }
+      persistTranslationCache(lang);
       status.textContent = "";
     } catch (error) {
       console.warn("NeuroSleep translation failed; restoring the original English text.", error);
