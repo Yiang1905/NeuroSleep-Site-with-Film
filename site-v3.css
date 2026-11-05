@@ -700,4 +700,4 @@ main>section.section:nth-of-type(8) .button{background:#38bfae;border-color:#38b
 @media(prefers-reduced-motion:reduce){.use-case-card,.use-case-visual img{transition:none!important}}
 
 /* Keep the decorative hero edge from creating horizontal scroll on narrow screens. */
-@media(max-width:560px){.hero{overflow:hidden}}
+.hero{overflow-x:clip}
