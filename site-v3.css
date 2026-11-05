@@ -698,3 +698,6 @@ main>section.section:nth-of-type(8) .button{background:#38bfae;border-color:#38b
 @media(max-width:900px){.hero{padding-bottom:90px}main>section.section:nth-of-type(2){margin-top:-26px;border-radius:36px 36px 0 0}.use-case-card,.use-case-card:nth-child(3n + 2),.use-case-card:nth-child(3n){border-radius:24px 24px 34px 24px!important}.use-case-visual,.use-case-card:nth-child(3n + 2) .use-case-visual,.use-case-card:nth-child(3n) .use-case-visual{border-radius:20px 20px 32px 16px}main>section.section:nth-of-type(5),main>section.section:nth-of-type(6),main>section.section:nth-of-type(8){border-radius:32px 32px 0 0}}
 @media(max-width:560px){.hero:after{height:44px}main>section.section:nth-of-type(2){padding-top:76px}.use-case-card{padding-bottom:20px!important}.use-case-visual{height:220px}main>section.section:nth-of-type(5) .film-frame{border-radius:22px}main>section.section:nth-of-type(5) .film-frame video{border-radius:14px}}
 @media(prefers-reduced-motion:reduce){.use-case-card,.use-case-visual img{transition:none!important}}
+
+/* Keep the decorative hero edge from creating horizontal scroll on narrow screens. */
+@media(max-width:560px){.hero{overflow:hidden}}
